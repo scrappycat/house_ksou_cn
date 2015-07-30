@@ -38,7 +38,7 @@ def translate(value):
             "sold on": val.strip()
         }
 
-    return { key: val }
+    return { key: val.strip() }
 
 # The scraper part where things break
 for elem in root.xpath("//tr[td/span[@class='addr']]/../../../.."):
@@ -54,7 +54,8 @@ for elem in root.xpath("//tr[td/span[@class='addr']]/../../../.."):
         "bedrooms": "",
         "bathrooms": "",
         "sold": "",
-        "sold on": ""
+        "sold on": "",
+        "agent": ""
     }
 
     for line in range(1,5):
@@ -76,7 +77,8 @@ for elem in root.xpath("//tr[td/span[@class='addr']]/../../../.."):
         "land_size": info["land size"],
         "suburb": suburb,
         "sold_on": info["sold on"],
-        "blob": blob
+        "agent": info["agent"],
+#        "blob": blob
     })
 
 
@@ -84,7 +86,7 @@ for elem in root.xpath("//tr[td/span[@class='addr']]/../../../.."):
 # scraperwiki.sqlite.save(unique_keys=['name'], data={"name": "susan", "occupation": "software developer"})
 
 # An arbitrary query against the database
-# print scraperwiki.sql.select("* from data")
+#print scraperwiki.sql.select("* from data")
 
 # You don't have to do things with the ScraperWiki and lxml libraries.
 # You can use whatever libraries you want: https://morph.io/documentation/python
