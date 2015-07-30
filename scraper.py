@@ -29,12 +29,14 @@ def parsePage(suburb ,state, page):
 
         key = "".join(value[0].xpath("./b/text()")).split(":")[0].lower()
         val = "".join(value[0].xpath("./text()"))
-        if key == "house" or \
-                        key == "unit" or \
-                        key == "townhouse" or \
-                        key == "apartment" or \
-                        key == "villa" or \
-                        key == "commercial property":
+
+        propertyTypes = ["house",
+                        "unit",
+                        "townhouse",
+                        "apartment",
+                        "villa",
+                        "commercial property"]
+        if key in propertyTypes:
             (bedrooms, bathrooms) = val.strip().partition(" ")[::2]
             return {
                 "type": key,
@@ -68,7 +70,7 @@ def parsePage(suburb ,state, page):
             "agent": ""
         }
 
-        for line in range(1,5):
+        for line in range(1,6):
             lineSelector = elem.\
                 xpath(".//span[@class='addr']/../../..//table/tr[" + str(line) + "]/td")
             info.update(translate(lineSelector))
