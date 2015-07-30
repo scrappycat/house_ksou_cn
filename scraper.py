@@ -32,7 +32,7 @@ def parsePage(suburb ,state, page):
         if key == "house" or \
                         key == "unit" or \
                         key == "townhouse" or \
-                        key == "apartment" or
+                        key == "apartment" or \
                         key == "commercial property":
             (bedrooms, bathrooms) = val.strip().partition(" ")[::2]
             return {
