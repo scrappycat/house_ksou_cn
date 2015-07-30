@@ -52,7 +52,6 @@ def parsePage(suburb ,state, page):
             }
 
         if key == "" and value[0].xpath('./img[@alt="Bed rooms"]'):
-            print "bedrooms=" + val
             return {
                 "bedrooms": val.strip()
             }
