@@ -36,6 +36,8 @@ def parsePage(suburb ,state, page):
                         "apartment",
                         "villa",
                         "land",
+                        "industrial",
+                        "other residential",
                         "commercial property"]
         if key in propertyTypes:
             (bedrooms, bathrooms) = val.strip().partition("  ")[::2]
