@@ -29,7 +29,11 @@ def parsePage(suburb ,state, page):
 
         key = "".join(value[0].xpath("./b/text()")).split(":")[0].lower()
         val = "".join(value[0].xpath("./text()"))
-        if key == "house" or key == "unit" or key == "townhouse":
+        if key == "house" or \
+                        key == "unit" or \
+                        key == "townhouse" or \
+                        key == "apartment" or
+                        key == "commercial property":
             (bedrooms, bathrooms) = val.strip().partition(" ")[::2]
             return {
                 "type": key,
