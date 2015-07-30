@@ -30,7 +30,7 @@ def parsePage(suburb ,state, page):
         key = "".join(value[0].xpath("./b/text()")).split(":")[0].lower()
         val = "".join(value[0].xpath("./text()"))
         if key == "house" or key == "unit" or key == "townhouse":
-            (bedrooms, bathrooms) = val.partition(" ")[::2]
+            (bedrooms, bathrooms) = val.strip().partition(" ")[::2]
             return {
                 "type": key,
                 "bedrooms": bedrooms,
@@ -68,6 +68,8 @@ def parsePage(suburb ,state, page):
                 xpath(".//span[@class='addr']/../../..//table/tr[" + str(line) + "]/td")
             info.update(translate(lineSelector))
 
+#        print info
+
         # Save found data
         scraperwiki.sqlite.save(unique_keys=['extracted_on','address'], data={
             "extracted_on": extractedOn,
@@ -83,7 +85,7 @@ def parsePage(suburb ,state, page):
             "suburb": suburb,
             "sold_on": info["sold on"],
             "agent": info["agent"],
-#            "blob": blob
+            "blob": blob
         })
 
 
