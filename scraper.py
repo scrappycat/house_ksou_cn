@@ -38,7 +38,7 @@ def parsePage(suburb ,state, page):
                         "land",
                         "commercial property"]
         if key in propertyTypes:
-            (bedrooms, bathrooms) = val.strip().partition(" ")[::2]
+            (bedrooms, bathrooms) = val.strip().partition("  ")[::2]
             return {
                 "type": key,
                 "bedrooms": bedrooms,
@@ -49,6 +49,12 @@ def parsePage(suburb ,state, page):
             return {
                 "sold": key.split()[1],
                 "sold on": val.strip()
+            }
+
+        if key == "" and value[0].xpath('./img[@alt="Bed rooms"]'):
+            print "bedrooms=" + val
+            return {
+                "bedrooms": val.strip()
             }
 
         return { key: val.strip() }
