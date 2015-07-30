@@ -7,10 +7,14 @@ from datetime import datetime
 import csv
 import urllib
 
-def parsePage(suburb ,state, pages):
+def parsePage(suburb ,state, page):
     html = scraperwiki.scrape("http://house.ksou.cn/p.php?" +
                               urllib.urlencode({
-                                  'q': suburb + ', ' + state
+                                  'q': suburb,
+                                  'sta': state.lower(),
+                                  'region': suburb,
+                                  'p': page,
+                                  's': page-1
                               }))
 
     # Find something on the page using css selectors
@@ -20,10 +24,13 @@ def parsePage(suburb ,state, pages):
     # translates row identifier and returns a dictionary with coolection of parsed parameters
     # to be merged with the original information dictionary
     def translate(value):
+        if len(value) == 0:
+            return {}
+
         key = "".join(value[0].xpath("./b/text()")).split(":")[0].lower()
         val = "".join(value[0].xpath("./text()"))
         if key == "house" or key == "unit" or key == "townhouse":
-            (bedrooms, bathrooms) = val.split()
+            (bedrooms, bathrooms) = val.partition(" ")[::2]
             return {
                 "type": key,
                 "bedrooms": bedrooms,
@@ -76,7 +83,7 @@ def parsePage(suburb ,state, pages):
             "suburb": suburb,
             "sold_on": info["sold on"],
             "agent": info["agent"],
-            "blob": blob
+#            "blob": blob
         })
 
 
@@ -87,12 +94,12 @@ try:
 except:
     print "table data not found"
 
-dictReader = csv.DictReader(open('suburbs.csv', 'rb'),
-                            fieldnames = ['state','suburb','pages'])
+dictReader = csv.DictReader(open('suburbs.csv', 'rb'))
 
 for line in dictReader:
-    # Read in a page
-    parsePage(line['suburb'], line['state'], line['pages'])
+    for page in range(1, int(line['pages'])):
+        # Read in a page
+        parsePage(line['suburb'], line['state'], page)
 
 # An arbitrary query against the database
 #print scraperwiki.sql.select("* from data")
