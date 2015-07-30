@@ -4,10 +4,82 @@
 import scraperwiki
 from lxml import etree
 from datetime import datetime
+import csv
+import urllib
 
-# Read in a page
-suburb = "Caulfield+South"
-html = scraperwiki.scrape("http://house.ksou.cn/p.php?q=" + suburb +"%2C+VIC")
+def parsePage(suburb ,state, pages):
+    html = scraperwiki.scrape("http://house.ksou.cn/p.php?" +
+                              urllib.urlencode({
+                                  'q': suburb + ', ' + state
+                              }))
+
+    # Find something on the page using css selectors
+    root = etree.HTML(html)
+    extractedOn = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
+
+    # translates row identifier and returns a dictionary with coolection of parsed parameters
+    # to be merged with the original information dictionary
+    def translate(value):
+        key = "".join(value[0].xpath("./b/text()")).split(":")[0].lower()
+        val = "".join(value[0].xpath("./text()"))
+        if key == "house" or key == "unit" or key == "townhouse":
+            (bedrooms, bathrooms) = val.split()
+            return {
+                "type": key,
+                "bedrooms": bedrooms,
+                "bathrooms": bathrooms
+            }
+
+        if key[0:4] == "sold":
+            return {
+                "sold": key.split()[1],
+                "sold on": val.strip()
+            }
+
+        return { key: val.strip() }
+
+    # The scraper part where things break
+    for elem in root.xpath("//tr[td/span[@class='addr']]/../../../.."):
+        blob = etree.tostring(elem, pretty_print=True)
+        streetAddress = elem.xpath(".//span[@class='addr']/a/text()")[0]
+
+        info = {
+            "type": "",
+            "land size": "",
+            "last sold": "",
+            "list": "",
+            "rent": "",
+            "bedrooms": "",
+            "bathrooms": "",
+            "sold": "",
+            "sold on": "",
+            "agent": ""
+        }
+
+        for line in range(1,5):
+            lineSelector = elem.\
+                xpath(".//span[@class='addr']/../../..//table/tr[" + str(line) + "]/td")
+            info.update(translate(lineSelector))
+
+        # Save found data
+        scraperwiki.sqlite.save(unique_keys=['extracted_on','address'], data={
+            "extracted_on": extractedOn,
+            "address": streetAddress,
+            "sold": info["sold"],
+            "bathrooms": info["bathrooms"],
+            "land_size": info["land size"],
+            "type": info["type"],
+            "bedrooms": info["bedrooms"],
+            "list": info["list"],
+            "rent": info["rent"],
+            "land_size": info["land size"],
+            "suburb": suburb,
+            "sold_on": info["sold on"],
+            "agent": info["agent"],
+            "blob": blob
+        })
+
+
 
 # Drop previous data table
 try:
@@ -15,75 +87,12 @@ try:
 except:
     print "table data not found"
 
-# Find something on the page using css selectors
-root = etree.HTML(html)
-extractedOn = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
+dictReader = csv.DictReader(open('suburbs.csv', 'rb'),
+                            fieldnames = ['state','suburb','pages'])
 
-# translates row identifier and returns a dictionary with coolection of parsed parameters
-# to be merged with the original information dictionary
-def translate(value):
-    key = "".join(value[0].xpath("./b/text()")).split(":")[0].lower()
-    val = "".join(value[0].xpath("./text()"))
-    if key == "house" or key == "unit" or key == "townhouse":
-        (bedrooms, bathrooms) = val.split()
-        return {
-            "type": key,
-            "bedrooms": bedrooms,
-            "bathrooms": bathrooms
-        }
-
-    if key[0:4] == "sold":
-        return {
-            "sold": key.split()[1],
-            "sold on": val.strip()
-        }
-
-    return { key: val.strip() }
-
-# The scraper part where things break
-for elem in root.xpath("//tr[td/span[@class='addr']]/../../../.."):
-    blob = etree.tostring(elem, pretty_print=True)
-    streetAddress = elem.xpath(".//span[@class='addr']/a/text()")[0]
-
-    info = {
-        "type": "",
-        "land size": "",
-        "last sold": "",
-        "list": "",
-        "rent": "",
-        "bedrooms": "",
-        "bathrooms": "",
-        "sold": "",
-        "sold on": "",
-        "agent": ""
-    }
-
-    for line in range(1,5):
-        lineSelector = elem.\
-            xpath(".//span[@class='addr']/../../..//table/tr[" + str(line) + "]/td")
-        info.update(translate(lineSelector))
-
-    # Save found data
-    scraperwiki.sqlite.save(unique_keys=['extracted_on','address'], data={
-        "extracted_on": extractedOn,
-        "address": streetAddress,
-        "sold": info["sold"],
-        "bathrooms": info["bathrooms"],
-        "land_size": info["land size"],
-        "type": info["type"],
-        "bedrooms": info["bedrooms"],
-        "list": info["list"],
-        "rent": info["rent"],
-        "land_size": info["land size"],
-        "suburb": suburb,
-        "sold_on": info["sold on"],
-        "agent": info["agent"],
-#        "blob": blob
-    })
-
-
-# Write out to the sqlite database using scraperwiki library
-# scraperwiki.sqlite.save(unique_keys=['name'], data={"name": "susan", "occupation": "software developer"})
+for line in dictReader:
+    # Read in a page
+    parsePage(line['suburb'], line['state'], line['pages'])
 
 # An arbitrary query against the database
 #print scraperwiki.sql.select("* from data")
