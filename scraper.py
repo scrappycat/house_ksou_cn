@@ -108,7 +108,7 @@ def parsePage(suburb ,state, page):
             "suburb": suburb,
             "sold_on": info["sold on"],
             "agent": info["agent"],
-            "blob": blob
+#            "blob": blob
         })
 
 
