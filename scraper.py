@@ -95,7 +95,7 @@ def parsePage(suburb ,state, page):
             info.update(translate(lineSelector))
 
         # Save found data
-        scraperwiki.sqlite.save(unique_keys=['extracted_on','address'], data={
+        scraperwiki.sqlite.save(unique_keys=['suburb', 'address', 'sold_on'], data={
             "extracted_on": extractedOn,
             "address": streetAddress,
             "sold": info["sold"],
@@ -114,10 +114,10 @@ def parsePage(suburb ,state, page):
 
 
 # Drop previous data table
-try:
-    scraperwiki.sql.execute("DROP TABLE data")
-except:
-    print "table data not found"
+# try:
+#     scraperwiki.sql.execute("DROP TABLE data")
+# except:
+#     print "table data not found"
 
 dictReader = csv.DictReader(open('suburbs.csv', 'rb'))
 
